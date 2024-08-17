@@ -1,5 +1,30 @@
 # On-demand self-hosted AWS EC2 runner for GitHub Actions
 
+# Important!
+This fork adds support for amazon linux 2023 and fixes some issues with the command to deploy the runner, including the addition of the --ephemeral flag.
+It also adds some configuration options (iam-role-arn, runner-version, disable-ephemeral-runner).
+
+To use this action on amazon linux 2023, you will need to create an AMI ([guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html)) with the following command:
+`sudo yum install -y lttng-ust openssl-libs krb5-libs zlib libicu`
+
+([source](https://github.com/actions/runner/blob/2979fbad9460c32bea9419595d8c3eacc8f4930d/src/Misc/layoutbin/installdependencies.sh#L150))
+
+Additionally, you will need to specify the `runner-version` config value. As of writing, the latest version is `2.319.1`.
+Example:
+```yaml
+- name: Start EC2 runner
+  id: start-ec2-runner
+  uses: ConnectAlum/ec2-github-runner@v3.0.0
+  with:
+    mode: start
+    github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+    ec2-image-id: ami-xyz
+    ec2-instance-type: t4g.xlarge
+    subnet-id: subnet-xyz
+    security-group-id: sg-xyz
+    runner-version: '2.319.1' #  <- https://github.com/actions/runner/releases
+```
+
 ⚠️ If you like the project, please consider [supporting Ukraine](https://bit.ly/3KeY7dc) in a [war](https://en.wikipedia.org/wiki/2022_Russian_invasion_of_Ukraine) against russian occupants. Any help would be much appreciated!
 
 [<img src="https://user-images.githubusercontent.com/2857712/156607570-8c9fd15b-8b44-41b3-bec3-312267af324f.png" width="500">](https://supportukrainenow.org)
@@ -200,12 +225,15 @@ Now you're ready to go!
 | `ec2-instance-type`                                                                                                                                                          | Required if you use the `start` mode.      | EC2 Instance Type.                                                                                                                                                                                                                                                                                                                    |
 | `subnet-id`                                                                                                                                                                  | Required if you use the `start` mode.      | VPC Subnet Id. <br><br> The subnet should belong to the same VPC as the specified security group.                                                                                                                                                                                                                                     |
 | `security-group-id`                                                                                                                                                          | Required if you use the `start` mode.      | EC2 Security Group Id. <br><br> The security group should belong to the same VPC as the specified subnet. <br><br> Only the outbound traffic for port 443 should be allowed. No inbound traffic is required.                                                                                                                          |
+| `runner-version`                                                                                                                                                              | Required if you use the `start` mode.      | Runner version. <br><br> The runner version is used to install the runner on the EC2 instance. (see [here](https://github.com/actions/runner/releases) for the latest version.)
 | `label`                                                                                                                                                                      | Required if you use the `stop` mode.       | Name of the unique label assigned to the runner. <br><br> The label is provided by the output of the action in the `start` mode. <br><br> The label is used to remove the runner from GitHub when the runner is not needed anymore.                                                                                                   |
 | `ec2-instance-id`                                                                                                                                                            | Required if you use the `stop` mode.       | EC2 Instance Id of the created runner. <br><br> The id is provided by the output of the action in the `start` mode. <br><br> The id is used to terminate the EC2 instance when the runner is not needed anymore.                                                                                                                      |
 | `iam-role-name`                                                                                                                                                              | Optional. Used only with the `start` mode. | IAM role name to attach to the created EC2 runner. <br><br> This allows the runner to have permissions to run additional actions within the AWS account, without having to manage additional GitHub secrets and AWS users. <br><br> Setting this requires additional AWS permissions for the role launching the instance (see above). |
+| `iam-role-arn`                                                                                                                                                              | Optional. Used only with the `start` mode. | IAM role arn to attach to the created EC2 runner. <br><br> This allows the runner to have permissions to run additional actions within the AWS account, without having to manage additional GitHub secrets and AWS users. <br><br> Setting this requires additional AWS permissions for the role launching the instance (see above). |
 | `aws-resource-tags`                                                                                                                                                          | Optional. Used only with the `start` mode. | Specifies tags to add to the EC2 instance and any attached storage. <br><br> This field is a stringified JSON array of tag objects, each containing a `Key` and `Value` field (see example below). <br><br> Setting this requires additional AWS permissions for the role launching the instance (see above).                         |
 | `runner-home-dir`                                                                                                                                                              | Optional. Used only with the `start` mode. | Specifies a directory where pre-installed actions-runner software and scripts are located.<br><br> |
 | `pre-runner-script`                                                                                                                                                              | Optional. Used only with the `start` mode. | Specifies bash commands to run before the runner starts.  It's useful for installing dependencies with apt-get, yum, dnf, etc. For example:<pre>          - name: Start EC2 runner<br>            with:<br>              mode: start<br>              ...<br>              pre-runner-script: \|<br>                 sudo yum update -y && \ <br>                 sudo yum install docker git libicu -y<br>                 sudo systemctl enable docker</pre>
+| `disable-ephemeral-runner`                                                                                                                                                              | Optional. Used only with the `start` mode. | Disable the --ephemeral flag for the runner.
 <br><br> |
 
 ### Environment variables
