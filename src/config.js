@@ -16,6 +16,8 @@ class Config {
       iamRoleArn: core.getInput('iam-role-arn'),
       runnerHomeDir: core.getInput('runner-home-dir'),
       preRunnerScript: core.getInput('pre-runner-script'),
+      runnerVersion: core.getInput('runner-version'),
+      disableEphemeralRunner: core.getInput('disable-ephemeral-runner') === 'true',
     };
 
     const tags = JSON.parse(core.getInput('aws-resource-tags'));
