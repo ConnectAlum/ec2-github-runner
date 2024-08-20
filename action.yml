@@ -15,6 +15,11 @@ inputs:
     description: >-
       GitHub Personal Access Token with the 'repo' scope assigned.
     required: true
+  runner-version:
+    description: >-
+      GitHub Actions Runner Version. The version of the GitHub Actions runner software to install on the EC2 instance.
+      The latest version can be found here:
+    required: true
   ec2-image-id:
     description: >-
       EC2 Image Id (AMI). The new runner will be launched from this image.
@@ -54,6 +59,11 @@ inputs:
       IAM Role Name to attach to the created EC2 instance.
       This requires additional permissions on the AWS role used to launch instances.
     required: false
+  iam-role-arn:
+    description: >-
+      IAM Role ARN to attach to the created EC2 instance.
+      This requires additional permissions on the AWS role used to launch instances.
+    required: false
   aws-resource-tags:
     description: >-
       Tags to attach to the launched EC2 instance and volume.
@@ -69,6 +79,11 @@ inputs:
     description: >-
       Specifies bash commands to run before the runner starts. It's useful for installing dependencies with apt-get, yum, dnf, etc.
     required: false
+  disable-ephemeral-runner:
+    description: >-
+      If set to true, the runner will not be removed from GitHub when the runner is not needed anymore.
+    required: false
+    default: 'false'
 
 outputs:
   label:
